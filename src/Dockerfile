@@ -4,6 +4,8 @@ ARG ALPINE_VERSION=3.22
 ARG APCU_VERSION=5.1.27
 ARG REDIS_VERSION=6.2.0
 ARG XDEBUG_VERSION=3.4.5
+ARG AMQP_VERSION=2.1.2
+ARG RDKAFKA_VERSION=6.0.5
 
 ARG INSTALL_MYSQL_CLIENT=false
 
@@ -30,11 +32,14 @@ LABEL maintainer="HeadgentOps <devops@headgent.dev>"
 ARG APCU_VERSION
 ARG REDIS_VERSION
 ARG XDEBUG_VERSION
+ARG AMQP_VERSION
+ARG RDKAFKA_VERSION
 
 RUN apk add --no-cache \
       autoconf make g++ gcc libc-dev linux-headers libzip-dev libxml2-dev oniguruma-dev icu-dev curl-dev \
       libjpeg-turbo-dev libpng-dev freetype-dev pcre2-dev re2c pkgconf flex bison libxslt-dev python3 perl gperf \
       gawk sed grep findutils coreutils postgresql-dev \
+      rabbitmq-c-dev librdkafka-dev \
  && export LC_ALL=C \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j"$(nproc)" curl soap zip mbstring intl bcmath gd sockets exif pcntl pdo_mysql mysqli pdo_pgsql \
@@ -45,7 +50,9 @@ RUN apk add --no-cache \
       apcu-${APCU_VERSION} \
       redis-${REDIS_VERSION} \
       xdebug-${XDEBUG_VERSION} \
- && docker-php-ext-enable apcu redis xdebug \
+      amqp-${AMQP_VERSION} \
+      rdkafka-${RDKAFKA_VERSION} \
+ && docker-php-ext-enable apcu redis xdebug amqp rdkafka \
  && docker-php-ext-enable opcache
 
 # --------------------
@@ -90,7 +97,7 @@ ENV PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT} \
 # Runtime-Libs (MySQL-Client optional) + Security Updates
 RUN set -eux; \
     apk upgrade --no-cache && \
-    PKGS="bash git unzip icu-libs libzip libxml2 oniguruma libjpeg-turbo libpng freetype postgresql-libs"; \
+    PKGS="bash git unzip icu-libs libzip libxml2 oniguruma libjpeg-turbo libpng freetype postgresql-libs rabbitmq-c librdkafka"; \
     if [ "${INSTALL_MYSQL_CLIENT}" = "true" ]; then \
       PKGS="$PKGS mysql-client"; \
     fi; \

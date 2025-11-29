@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------
 ##@ Test
 
-PHP_EXTENSIONS := apcu redis gd intl mbstring pcntl bcmath soap exif sockets dom zip mysqli curl pdo_mysql pdo_pgsql
+PHP_EXTENSIONS := apcu redis gd intl mbstring pcntl bcmath soap exif sockets dom zip mysqli curl pdo_mysql pdo_pgsql amqp rdkafka
 
 test-opcache: build-test-images ## OPcache geladen + aktiv (enable & enable_cli) und JIT aktiviert auf beiden Archs
 	@set -e; \

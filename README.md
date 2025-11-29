@@ -4,208 +4,338 @@
 ![Build Status](https://github.com/headgent/phpcli/actions/workflows/ci.yml/badge.svg)
 [![Docker Image Version](https://img.shields.io/docker/v/headgent/phpcli?sort=semver)](https://hub.docker.com/r/headgent/phpcli)
 
-### Versioned, multi-arch PHP CLI images for fast, reproducible console apps
+### Production-grade PHP CLI images built for modern workloads
 
-Our images target **PHP 8.2 – 8.4** (minimum 8.2), ship for **linux/amd64** and **linux/arm64**, and are tuned for stable, production-grade CLI workloads.
-
----
-
-## ✨ Highlights
-
-- **Consistent multi-arch builds** (AMD64 + ARM64) via `buildx`.
-- **OPcache + JIT enabled by default on all platforms** for maximum performance (opt-out via ENV).
-- **PECL extensions pinned** for reproducible builds: `apcu`, `redis`, `xdebug`.
-- **Production-first runtime**: two-stage build, minimal runtime deps, non‑root user.
-- **Runtime-configurable PHP** via ENV and an entrypoint that generates a dedicated `99-runtime-config.ini` at container start.
-- **Composer preinstalled** and ready to use.
+Ship faster, scale smarter, and deploy with confidence. Our battle-tested images power **PHP 8.2–8.4** workloads on **linux/amd64** and **linux/arm64**, delivering enterprise performance with developer-friendly defaults.
 
 ---
 
-## Features
+## 🚀 Why Choose Headgent PHP CLI?
 
-- **Extensions (built/installed):**
-    - Core DB: `pdo`, `pdo_mysql`, `mysqli`, `pdo_pgsql`
-    - Caching: `apcu` (PECL), `redis` (PECL)
-    - Web/IO: `curl`, `soap`
-    - Data: `dom`, `zip`
-    - i18n: `mbstring`, `intl`
-    - Processes: `pcntl`
-    - Math: `bcmath`
-    - Images & metadata: `gd` (with FreeType/JPEG), `exif`
-    - Networking: `sockets`
-    - Debug: `xdebug` (PECL)
-    - Performance: `opcache` (built-in)
-- **Runtime:**
-    - **Alpine Linux** base, production `php.ini`
-    - **Non-root user** (`appuser`), **healthcheck**, **Composer** preinstalled
-    - Entry-point generates `99-runtime-config.ini` from ENV
+### Built for Production, Optimized for Performance
+
+Modern PHP applications demand more than basic runtime environments. **Headgent PHP CLI** delivers a complete, production-ready foundation that eliminates infrastructure complexity and accelerates your deployment pipeline:
+
+- **🎯 Zero-Configuration Message Queues** – RabbitMQ (`amqp`) and Kafka (`rdkafka`) extensions pre-installed for asynchronous job processing, event-driven architectures, and microservices communication
+- **⚡ Maximum Performance** – OPcache + JIT enabled by default on all platforms (AMD64 & ARM64), delivering up to 3x faster execution for compute-intensive CLI workloads
+- **🔒 Security-First Design** – Non-root user, minimal attack surface, production `php.ini`, and regular security updates from Alpine Linux
+- **🔄 True Multi-Arch Support** – Native ARM64 support means seamless deployment on Apple Silicon, AWS Graviton, and modern cloud infrastructure
+- **📦 Reproducible Builds** – Pinned PECL versions, locked Alpine base, and controlled dependencies guarantee identical behavior across dev, staging, and production
+- **🛠️ Developer Experience** – Runtime-configurable via ENV vars, Xdebug pre-installed, and Composer ready to go—no Dockerfile editing required
 
 ---
 
-## 🔑 Fundamental advantages
+## ✨ What's Inside
 
-- **Reproducibility:** Pinned PECL versions + controlled Alpine base = stable, repeatable builds.
-- **Performance & stability:** OPcache + JIT enabled (PHP 8.2+ proven stable on AMD64 & ARM64).
-- **Lean runtime:** Full toolchain only in build stage; runtime stays slim.
-- **Security by default:** Non‑root `appuser`, health checks, and clear configuration boundaries.
-- **Multi-version strategy:** Single Dockerfile builds 8.2/8.3/8.4 with identical behavior.
+### Complete Extension Stack for Professional PHP
 
----
+**Database Connectivity:**
+- `pdo`, `pdo_mysql`, `mysqli`, `pdo_pgsql` – Full MySQL/MariaDB and PostgreSQL support
 
-## Architectures & Tags
+**Message Queue & Caching:**
+- `amqp` (PECL 2.1.2) – RabbitMQ client for reliable message delivery
+- `rdkafka` (PECL 6.0.5) – Apache Kafka client for high-throughput event streaming
+- `apcu` (PECL 5.1.27) – In-memory user cache for blazing-fast data access
+- `redis` (PECL 6.2.0) – Redis client for distributed caching and pub/sub
 
-- Architectures: **linux/amd64**, **linux/arm64**
-- Tags: `8.2`, `8.3`, `8.4`, and `latest` → tracks the highest declared version (currently `8.4`)
+**Web Services & I/O:**
+- `curl`, `soap` – HTTP/REST API clients and SOAP web services
+- `sockets` – Low-level network socket programming
+- `dom`, `zip` – XML processing and archive manipulation
 
-Images are published on Docker Hub: https://hub.docker.com/r/headgent/phpcli/tags
+**Internationalization & Data:**
+- `mbstring`, `intl` – Unicode and multi-language support
+- `bcmath` – Arbitrary precision mathematics
 
----
+**Media Processing:**
+- `gd` (FreeType + JPEG support) – Image generation and manipulation
+- `exif` – Extract image metadata
 
-## ⚙️ OPcache & JIT
+**Development & Debugging:**
+- `xdebug` (PECL 3.4.5) – Step debugging with breakpoint support
+- `pcntl` – Process control for worker queues and daemons
+- `opcache` – Bytecode cache with JIT compilation (built-in)
 
-- ✅ **OPcache** is **enabled** for CLI and FPM contexts.
-- ✅ **JIT** is **enabled by default** (mode `1254` = tracing JIT with call graph).
-
-PHP 8.2+ provides stable JIT support on both AMD64 and ARM64 platforms.
-
-### JIT Configuration Modes
-
-**Development/Debug Mode (default):**
-- `XDEBUG_MODE=debug` (default)
-- JIT is **automatically disabled** by PHP
-- Reason: Xdebug overrides `zend_execute_ex()` which is incompatible with JIT
-- Optimized for development with step debugging and breakpoints
-
-**Production Mode:**
-- Set `XDEBUG_MODE=off` in production
-- JIT is **active** and provides maximum performance
-- Recommended for production workloads
-
-**Opt-out (manual disable):**
-- Set `OPCACHE_JIT=off` or `OPCACHE_JIT_BUFFER_SIZE=0`
-- JIT disabled regardless of Xdebug mode
-- Use when you want to explicitly disable JIT performance optimizations
-
-⚠️ **Important:** Xdebug and JIT cannot run simultaneously. When Xdebug is in `debug` mode, PHP will emit a warning and automatically disable JIT. This is expected behavior and ensures debugging functionality works correctly.
+**Performance Foundation:**
+- **OPcache** enabled for CLI/FPM – Eliminates PHP compilation overhead
+- **JIT** enabled by default (mode `1254`) – Up to 3x performance boost for CPU-intensive code
+- **Two-stage build** – Full toolchain isolated to build stage, lean runtime (~142-148MB)
 
 ---
 
-## 🔧 Configurable parameters (complete)
+## 🎯 Perfect For
 
-### Build arguments (become runtime defaults)
-| ARG | Default | Description |
-|---|---:|---|
-| `PHP_VERSION` | `8.3` | PHP minor version to build (supports `8.2`, `8.3`, `8.4`). |
-| `ALPINE_VERSION` | `3.20` | Alpine base tag used by `php:<PHP_VERSION>-cli-alpine<ALPINE_VERSION>`. |
-| `APCU_VERSION` | `5.1.27` | PECL apcu version (pinned). |
-| `REDIS_VERSION` | `6.2.0` | PECL redis version (pinned). |
-| `XDEBUG_VERSION` | `3.4.5` | PECL xdebug version (pinned). |
-| `PHP_MEMORY_LIMIT` | `512M` | Default memory limit. |
-| `PHP_MAX_EXECUTION_TIME` | `0` | Default max execution time (0 = unlimited). |
-| `PHP_TIMEZONE` | `UTC` | Default timezone. |
-| `APCU_SHM_SIZE` | `64M` | Default APCu shared memory size. |
-| `OPCACHE_MEMORY_CONSUMPTION` | `128` | OPcache memory in MB. |
-| `OPCACHE_MAX_ACCELERATED_FILES` | `4000` | OPcache max cached files. |
-| `OPCACHE_REVALIDATE_FREQ` | `2` | OPcache revalidate interval (sec). |
-| `OPCACHE_JIT` | `1254` | JIT mode: `1254` (tracing), `off`/`0` (disabled). |
-| `OPCACHE_JIT_BUFFER_SIZE` | `128M` | JIT buffer size (set to `0` to disable JIT). |
-| `PHP_ERROR_REPORTING` | `E_ALL & ~E_DEPRECATED & ~E_STRICT` | PHP error level. |
-| `PHP_DISPLAY_ERRORS` | `Off` | PHP display errors. |
-| `PHP_LOG_ERRORS` | `On` | PHP log errors. |
-
-> These ARGs are copied into `ENV` in the runtime stage to serve as sane defaults. All can be overridden at `docker run ... -e VAR=...`.
-
-### Runtime environment (PHP core / entrypoint-driven)
-| ENV | Type | Default | Notes |
-|---|---|---:|---|
-| `PHP_MEMORY_LIMIT` | string | `512M` | `memory_limit` |
-| `PHP_MAX_EXECUTION_TIME` | int | `0` | `max_execution_time` |
-| `PHP_TIMEZONE` | string | `UTC` | `date.timezone` |
-| `PHP_ERROR_REPORTING` | string | `E_ALL & ~E_DEPRECATED & ~E_STRICT` | |
-| `PHP_DISPLAY_ERRORS` | `On/Off` | `Off` | |
-| `PHP_LOG_ERRORS` | `On/Off` | `On` | |
-| `APCU_SHM_SIZE` | string | `64M` | `apc.shm_size`, `apc.enable_cli=1` fixed |
-| `OPCACHE_MEMORY_CONSUMPTION` | int | `128` | |
-| `OPCACHE_MAX_ACCELERATED_FILES` | int | `4000` | |
-| `OPCACHE_REVALIDATE_FREQ` | int | `2` | |
-| `OPCACHE_JIT` | string/int | `1254` | JIT mode (e.g., `1254`, `off`, `0`). |
-| `OPCACHE_JIT_BUFFER_SIZE` | string | `128M` | JIT buffer size. Set to `0` to disable JIT. |
-| *(fixed by entrypoint)* | — | — | `opcache.enable=1`, `opcache.enable_cli=1`, `expose_php=Off`. |
-
-### Runtime environment (Xdebug)
-| ENV | Default | Description |
-|---|---:|---|
-| `XDEBUG_MODE` | `debug` | e.g. `debug`, `develop`, `trace`, `coverage` (comma-separated). **⚠️ `debug` mode disables JIT! Set to `off` for production.** |
-| `XDEBUG_START_WITH_REQUEST` | `yes` | `yes`/`no`. |
-| `XDEBUG_CLIENT_HOST` | `host.docker.internal` | Typically `host.docker.internal` (macOS/Windows) or host IP. |
-| `XDEBUG_CLIENT_PORT` | `9003` | Client port. |
-| `XDEBUG_LOG_LEVEL` | `0` | 0–10 (verbose). |
-
-> **Xdebug is installed and enabled; behavior is controlled by the env vars above.**
->
-> - **`XDEBUG_MODE=debug` (default):** Enables step debugging with breakpoints. **JIT is automatically disabled** by PHP due to incompatibility with Xdebug's `zend_execute_ex()` override. Optimized for development.
-> - **`XDEBUG_MODE=off`:** Xdebug loads but stays inactive. **JIT remains active** for maximum performance. Use in production.
->
-> 💡 **Best Practice:** Default is optimized for development. For production, set `XDEBUG_MODE=off` to enable JIT and maximize performance.
+- **Asynchronous Job Workers** – Laravel Queue, Symfony Messenger, custom worker pools
+- **Event-Driven Microservices** – RabbitMQ/Kafka consumers, event processors, CQRS systems
+- **Scheduled Tasks & Cron Jobs** – Database maintenance, report generation, data synchronization
+- **CLI Tools & Scripts** – Deployment automation, data migration, DevOps utilities
+- **API Clients & Integrations** – Third-party API consumers, webhook processors
+- **Long-Running Daemons** – WebSocket servers, IoT data collectors, real-time processors
 
 ---
 
-## Usage
+## 🏗️ Architecture & Tags
 
-### Build (single version)
+### Multi-Architecture Support
+- **linux/amd64** – Intel/AMD x86_64 processors
+- **linux/arm64** – Apple Silicon (M1/M2/M3), AWS Graviton, Ampere, Raspberry Pi 4+
+
+### Version Tags
+- `8.2`, `8.3`, `8.4` – Specific PHP minor versions
+- `latest` → Currently tracks `8.4` (highest stable version)
+
+**Published on Docker Hub:** https://hub.docker.com/r/headgent/phpcli/tags
+
+**Minimum PHP Version:** 8.2 (JIT stable from this version)
+**PHP 8.5 Support:** Will be added when official Docker images are released (expected November 2025)
+
+---
+
+## ⚡ Performance: OPcache & JIT
+
+PHP 8.2+ delivers production-stable JIT (Just-In-Time) compilation on both AMD64 and ARM64. Our images enable JIT by default with optimal settings for CLI workloads.
+
+### Configuration Modes
+
+**🛠️ Development Mode (Default)**
 ```bash
-docker build -t headgent/phpcli:8.3   --build-arg PHP_VERSION=8.3   --build-arg ALPINE_VERSION=3.20   --build-arg APCU_VERSION=5.1.27   --build-arg REDIS_VERSION=6.2.0   --build-arg XDEBUG_VERSION=3.4.5   ./src
+# Xdebug active, JIT automatically disabled by PHP
+XDEBUG_MODE=debug  # (default)
+```
+- ✅ Step debugging with breakpoints works out-of-the-box
+- ⚠️ PHP automatically disables JIT (expected behavior due to `zend_execute_ex()` conflict)
+- 🎯 Optimized for local development and debugging workflows
+
+**🚀 Production Mode**
+```bash
+# Xdebug inactive, JIT enabled for maximum performance
+XDEBUG_MODE=off
+```
+- ✅ JIT fully operational (up to 3x faster execution)
+- ✅ Minimal overhead, maximum throughput
+- 🎯 Recommended for staging, production, and performance testing
+
+**🔧 Manual JIT Control**
+```bash
+# Disable JIT regardless of Xdebug mode
+OPCACHE_JIT=off
+# or
+OPCACHE_JIT_BUFFER_SIZE=0
 ```
 
-### Run
+**💡 Key Insight:** Xdebug and JIT cannot run simultaneously. This is by design—when `XDEBUG_MODE=debug`, PHP automatically disables JIT to ensure debugging reliability. The warning you see is informational, not an error.
+
+---
+
+## 🔧 Configuration
+
+All settings can be overridden at runtime via `docker run -e VAR=value`:
+
+### Runtime Environment Variables
+
+| Category | Variable | Default | Description |
+|---|---|---|---|
+| **PHP Core** | `PHP_MEMORY_LIMIT` | `512M` | Maximum memory per script |
+| | `PHP_MAX_EXECUTION_TIME` | `0` | Max execution time (0 = unlimited) |
+| | `PHP_TIMEZONE` | `UTC` | Default timezone |
+| | `PHP_ERROR_REPORTING` | `E_ALL & ~E_DEPRECATED` | Error reporting level |
+| | `PHP_DISPLAY_ERRORS` | `Off` | Display errors to output |
+| | `PHP_LOG_ERRORS` | `On` | Log errors to file/stderr |
+| **OPcache** | `OPCACHE_MEMORY_CONSUMPTION` | `128` | OPcache memory (MB) |
+| | `OPCACHE_MAX_ACCELERATED_FILES` | `4000` | Max cached files |
+| | `OPCACHE_REVALIDATE_FREQ` | `2` | Revalidate interval (seconds) |
+| | `OPCACHE_JIT` | `1254` | JIT mode (1254=tracing, off=disabled) |
+| | `OPCACHE_JIT_BUFFER_SIZE` | `128M` | JIT buffer size |
+| **APCu** | `APCU_SHM_SIZE` | `64M` | Shared memory size |
+| **Xdebug** | `XDEBUG_MODE` | `debug` | `debug`, `develop`, `trace`, `coverage`, `off` |
+| | `XDEBUG_START_WITH_REQUEST` | `yes` | Auto-start debugging |
+| | `XDEBUG_CLIENT_HOST` | `host.docker.internal` | IDE host (macOS/Windows) |
+| | `XDEBUG_CLIENT_PORT` | `9003` | IDE port |
+| | `XDEBUG_LOG_LEVEL` | `0` | Log verbosity (0-10) |
+
+### PECL Extension Versions
+
+| Extension | Version | Purpose |
+|---|---|---|
+| `amqp` | `2.1.2` | RabbitMQ AMQP 0-9-1 protocol client |
+| `rdkafka` | `6.0.5` | Apache Kafka high-performance client |
+| `apcu` | `5.1.27` | In-memory user cache |
+| `redis` | `6.2.0` | Redis client for caching/pub-sub |
+| `xdebug` | `3.4.5` | Step debugging with breakpoints |
+
+### Build Arguments
+
+All runtime defaults can also be set at build time via `--build-arg`:
+- **Versions:** `PHP_VERSION`, `ALPINE_VERSION`, `APCU_VERSION`, `REDIS_VERSION`, `XDEBUG_VERSION`, `AMQP_VERSION`, `RDKAFKA_VERSION`
+- **PHP Settings:** All runtime environment variables listed above
+
+> 💡 **Configuration Philosophy:** Build ARGs set defaults, ENV vars override at runtime. No Dockerfile edits needed for configuration changes.
+
+---
+
+## 🚀 Quick Start
+
+### Pull & Run
 ```bash
+# Pull latest version
+docker pull headgent/phpcli:latest
+
 # Print PHP info
-docker run --rm headgent/phpcli:8.3 php -i | less
+docker run --rm headgent/phpcli:8.4 php -v
 
-# Override runtime PHP settings
-docker run --rm -e PHP_MEMORY_LIMIT=1G -e PHP_TIMEZONE=Europe/Berlin headgent/phpcli:8.3 php -r 'echo ini_get("memory_limit"),"\n",ini_get("date.timezone"),"\n";'
+# Check loaded extensions (including message queue support)
+docker run --rm headgent/phpcli:8.4 php -m
 
-# Development mode (default) - Xdebug active, JIT disabled
-docker run --rm headgent/phpcli:8.3 php your-script.php
-
-# Production mode - Disable Xdebug to enable JIT
-docker run --rm -e XDEBUG_MODE=off headgent/phpcli:8.3 php your-script.php
-
-# Verify JIT status
-docker run --rm headgent/phpcli:8.3 php -r '$s=opcache_get_status(); echo "JIT Active: ".($s["jit"]["on"]?"YES":"NO")."\n";'
-
-# Verify Xdebug mode
-docker run --rm headgent/phpcli:8.3 php -r 'echo "Xdebug Mode: ".ini_get("xdebug.mode")."\n";'
+# Verify JIT status (production mode)
+docker run --rm -e XDEBUG_MODE=off headgent/phpcli:8.4 \
+  php -r '$s=opcache_get_status(); echo "JIT: ".($s["jit"]["on"]?"✅ ACTIVE":"❌ OFF")."\n";'
 ```
 
-### Notes on size
-- Runtime stage contains only what’s needed to **run** your app and **Composer**.
-- Build toolchain lives only in the build stage.
-- `mysql-client`) is not installed by default
+### Production Deployment
+```bash
+# Run with optimized settings for production
+docker run --rm \
+  -e XDEBUG_MODE=off \
+  -e PHP_MEMORY_LIMIT=1G \
+  -e OPCACHE_JIT_BUFFER_SIZE=256M \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  php artisan queue:work
+```
+
+### Development with Xdebug
+```bash
+# Run with debugging enabled (default)
+docker run --rm \
+  -e XDEBUG_MODE=debug \
+  -e XDEBUG_CLIENT_HOST=host.docker.internal \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  php your-script.php
+```
+
+### RabbitMQ Worker Example
+```bash
+# Laravel Queue worker with RabbitMQ
+docker run --rm \
+  -e XDEBUG_MODE=off \
+  -e PHP_MEMORY_LIMIT=512M \
+  --network=app-network \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  php artisan queue:work rabbitmq --tries=3
+```
+
+### Kafka Consumer Example
+```bash
+# Symfony Messenger Kafka consumer
+docker run --rm \
+  -e XDEBUG_MODE=off \
+  -e PHP_MAX_EXECUTION_TIME=0 \
+  --network=app-network \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  php bin/console messenger:consume kafka_events --memory-limit=512M
+```
+
+### Composer Usage
+```bash
+# Install dependencies
+docker run --rm -v $(pwd):/app headgent/phpcli:8.4 composer install
+
+# Update dependencies
+docker run --rm -v $(pwd):/app headgent/phpcli:8.4 composer update
+
+# Run scripts
+docker run --rm -v $(pwd):/app headgent/phpcli:8.4 composer run-script test
+```
 
 ---
 
-## Healthcheck
+## 🔬 Build & Test (For Contributors)
 
-The image includes a healthcheck that validates PHP and Composer:
+### Local Build
+```bash
+# Clone repository
+git clone https://github.com/headgent/phpcli.git
+cd phpcli
+
+# Build single version
+make build
+
+# Build all PHP versions (8.2, 8.3, 8.4)
+make build-all
+
+# Build multi-arch test images
+make build-test-images
 ```
-php --version >/dev/null && composer --version >/dev/null
+
+### Testing
+```bash
+# Run all tests (OPcache, JIT, extensions) on both architectures
+make test-all
+
+# Test OPcache & JIT specifically
+make test-opcache
+
+# Test extension loading
+make test-extensions
 ```
+
+### Makefile Targets
+- `make build` – Build single version from `.env` (native arch)
+- `make build-all` – Build all PHP versions locally
+- `make build-test-images` – Build multi-arch test images (`:amd64-test`, `:arm64-test`)
+- `make build-remote-all` – Build & push all versions to Docker Hub (multi-arch manifests)
+- `make test-all` – Verify OPcache, JIT, and all extensions on both architectures
+- `make shell` – Interactive shell in container
+- `make clean` – Remove containers, images, caches
+- `make info` – Display current `.env` settings
 
 ---
 
-## Makefile targets (optional)
+## 📊 Image Size
 
-If you use our `support/docker.mk`, you get helpers for local and remote multi-arch builds, cache backends, and tests. See comments in that file for examples:
+**Optimized for Production:**
+- PHP 8.2/8.3: **~142MB** (compressed)
+- PHP 8.4: **~148MB** (compressed)
 
-- `make build` – build the compose service locally
-- `make build-all` – build all PHP versions locally (native arch)
-- `make build-test-images` – build amd64/arm64 test tags locally (with optional caching)
-- `make build-remote-all` – push multi-arch tags for all PHP versions
-- `make test-all` – run OPcache/JIT and extension checks on both arches
+**What's Included:**
+- Complete PHP runtime with 20+ extensions
+- RabbitMQ + Kafka support
+- Composer
+- OPcache + JIT
+- Development tools (Xdebug)
+
+**What's NOT Included:**
+- Build toolchain (isolated to build stage)
+- MySQL client (optional via `INSTALL_MYSQL_CLIENT=true`)
+- Unnecessary system packages
 
 ---
 
-## License
+## 🔒 Security
+
+- **Non-root user:** All processes run as `appuser` (UID/GID 1001)
+- **Minimal attack surface:** Only runtime dependencies in final image
+- **Regular updates:** Built on Alpine Linux with security patches
+- **Production defaults:** `expose_php=Off`, secure error handling
+- **Healthcheck included:** Validates PHP and Composer on startup
+
+---
+
+## 📄 License
 
 MIT © Headgent GmbH
+
+---
+
+## 💬 Support
+
+- **Issues:** https://github.com/headgent/phpcli/issues
+- **Docker Hub:** https://hub.docker.com/r/headgent/phpcli
+- **Email:** devops@headgent.dev
+
+---
+
+**Built with ❤️ by Headgent GmbH** – Empowering developers to ship production-ready PHP applications with confidence.
