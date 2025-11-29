@@ -54,12 +54,15 @@ build: ## Build local native platform php image for .env PHP_VERSION
 	docker images --filter dangling=true -q | xargs -r docker rmi
 .PHONY: build
 
-build-all: ## Build local native platform php image for all defined PHP_VERSIONS
+build-all: ## Build local native platform php image for all defined PHP_VERSIONS + latest tag
 	@for version in $(PHP_VERSIONS); do \
 		echo ">>> Building $(PHP_IMAGE_NAME) for PHP $$version ..."; \
 		PHP_VERSION=$$version $(DOCKER_COMPOSE) build $$( [ "$(NO_CACHE)" = "true" ] && echo "--no-cache" ) $(PHP_IMAGE_NAME); \
 		echo ">>> Created: $(PHP_IMAGE_NAME) (PHP $$version)"; \
 	done
+	@echo ">>> Tagging $(DOCKER_HUB)/$(PHP_IMAGE_NAME):$(LATEST_VERSION) as latest ..."
+	@docker tag $(DOCKER_HUB)/$(PHP_IMAGE_NAME):$(LATEST_VERSION) $(DOCKER_HUB)/$(PHP_IMAGE_NAME):latest
+	@echo ">>> Created: $(DOCKER_HUB)/$(PHP_IMAGE_NAME):latest"
 	docker images --filter dangling=true -q | xargs -r docker rmi
 .PHONY: build-all
 

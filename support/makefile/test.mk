@@ -10,7 +10,7 @@ test-opcache: build-test-images ## OPcache geladen + aktiv (enable & enable_cli)
 	@set -e; \
 	for arch in amd64 arm64; do \
 	  echo ">>> Prüfen: OPcache & JIT auf $$arch"; \
-	  docker run --rm --platform=linux/$$arch $(PHP_IMAGE_NAME):$$arch-test php -r "\
+	  docker run --rm --platform=linux/$$arch -e XDEBUG_MODE=off $(PHP_IMAGE_NAME):$$arch-test php -r "\
 if (!(extension_loaded('Zend OPcache') || extension_loaded('opcache'))) {fwrite(STDERR,'OPcache nicht geladen'); exit(1);} \
 if (ini_get('opcache.enable')!=='1')     {fwrite(STDERR,'opcache.enable != '.ini_get('opcache.enable')); exit(1);} \
 if (ini_get('opcache.enable_cli')!=='1') {fwrite(STDERR,'opcache.enable_cli != '.ini_get('opcache.enable_cli')); exit(1);} \

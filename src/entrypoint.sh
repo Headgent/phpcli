@@ -9,16 +9,6 @@ set -e
 # Ensure the user config directory exists
 mkdir -p /home/appuser/php-config
 
-# Auto-disable JIT when Xdebug is active (any mode except 'off')
-# This prevents JIT incompatibility warnings since Xdebug overrides zend_execute_ex()
-JIT_MODE="${OPCACHE_JIT}"
-JIT_BUFFER="${OPCACHE_JIT_BUFFER_SIZE}"
-
-if [ "${XDEBUG_MODE}" != "off" ] && [ "${XDEBUG_MODE}" != "" ]; then
-  JIT_MODE="off"
-  JIT_BUFFER="0"
-fi
-
 # Generate dynamic PHP configuration based on environment variables
 cat > /home/appuser/php-config/99-runtime-config.ini << PHPINI
 ; =============================================================================
@@ -54,15 +44,14 @@ opcache.max_accelerated_files = ${OPCACHE_MAX_ACCELERATED_FILES}
 opcache.revalidate_freq = ${OPCACHE_REVALIDATE_FREQ}
 opcache.fast_shutdown = 1
 
-; JIT configuration (PHP 8.2+, stable on AMD64 and ARM64)
-; Auto-disabled when XDEBUG_MODE != off to prevent incompatibility warnings
-; Manually set OPCACHE_JIT=off or OPCACHE_JIT_BUFFER_SIZE=0 to force disable
-opcache.jit = ${JIT_MODE}
-opcache.jit_buffer_size = ${JIT_BUFFER}
+; JIT enabled by default (PHP 8.2+, stable on AMD64 and ARM64)
+; Set OPCACHE_JIT=off or OPCACHE_JIT_BUFFER_SIZE=0 to disable
+opcache.jit = ${OPCACHE_JIT}
+opcache.jit_buffer_size = ${OPCACHE_JIT_BUFFER_SIZE}
 
 ; Xdebug configuration (runtime controllable)
-; IMPORTANT: When XDEBUG_MODE != off, JIT is automatically disabled
-; Set XDEBUG_MODE=off for production to enable JIT
+; IMPORTANT: Set XDEBUG_MODE=off for production to enable JIT
+; Xdebug in debug mode disables JIT due to conflicts with zend_execute_ex
 xdebug.mode = ${XDEBUG_MODE}
 xdebug.start_with_request = ${XDEBUG_START_WITH_REQUEST}
 xdebug.client_host = ${XDEBUG_CLIENT_HOST}
