@@ -53,6 +53,7 @@ Modern PHP applications demand more than basic runtime environments. **Headgent 
 
 **Development & Debugging:**
 - `xdebug` (PECL 3.4.5) – Step debugging with breakpoint support
+- `pcov` (PECL 1.0.12) – Fast code coverage for CI/CD pipelines
 - `pcntl` – Process control for worker queues and daemons
 - `opcache` – Bytecode cache with JIT compilation (built-in)
 
@@ -127,6 +128,67 @@ OPCACHE_JIT_BUFFER_SIZE=0
 
 ---
 
+## 📊 Code Coverage: PCOV vs Xdebug
+
+### Why PCOV?
+
+When running code coverage in CI/CD pipelines, **PCOV is 2x faster** than Xdebug because it's purpose-built for coverage collection without debugging overhead.
+
+### Configuration Modes
+
+**🚀 Fast Coverage Mode (PCOV)**
+```bash
+# Enable PCOV for fast code coverage
+docker run --rm \
+  -e PCOV_ENABLED=1 \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  vendor/bin/phpunit --coverage-html coverage/
+```
+- ✅ PCOV automatically activated
+- ✅ Xdebug automatically disabled (conflict resolution)
+- ✅ ~2x faster than Xdebug coverage
+- 🎯 Recommended for CI/CD pipelines
+
+**🔍 Debug + Coverage Mode (Xdebug)**
+```bash
+# Use Xdebug for debugging AND coverage
+docker run --rm \
+  -e XDEBUG_MODE=coverage,debug \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  vendor/bin/phpunit --coverage-html coverage/
+```
+- ✅ Step debugging + coverage in one tool
+- ⚠️ Slower than PCOV
+- 🎯 Use when you need debugging capabilities
+
+**⚡ Production Mode (No Coverage)**
+```bash
+# Disable both for maximum performance
+docker run --rm \
+  -e XDEBUG_MODE=off \
+  -e PCOV_ENABLED=0 \
+  -v $(pwd):/app \
+  headgent/phpcli:8.4 \
+  vendor/bin/phpunit
+```
+- ✅ JIT fully operational
+- ✅ Maximum test execution speed
+- 🎯 Use for performance benchmarks
+
+### Automatic Conflict Resolution
+
+**Smart Logic:** When `PCOV_ENABLED=1`, the entrypoint automatically sets `XDEBUG_MODE=off` to prevent conflicts. You don't need to manage this manually.
+
+```bash
+# This automatically disables Xdebug
+docker run --rm -e PCOV_ENABLED=1 headgent/phpcli:8.4 php -v
+# Output: "ℹ️  PCOV enabled - automatically disabling Xdebug (XDEBUG_MODE=off)"
+```
+
+---
+
 ## 🔧 Configuration
 
 All settings can be overridden at runtime via `docker run -e VAR=value`:
@@ -152,6 +214,7 @@ All settings can be overridden at runtime via `docker run -e VAR=value`:
 | | `XDEBUG_CLIENT_HOST` | `host.docker.internal` | IDE host (macOS/Windows) |
 | | `XDEBUG_CLIENT_PORT` | `9003` | IDE port |
 | | `XDEBUG_LOG_LEVEL` | `0` | Log verbosity (0-10) |
+| **PCOV** | `PCOV_ENABLED` | `0` | `1`=enabled, `0`=disabled (auto-disables Xdebug when `1`) |
 
 ### PECL Extension Versions
 
@@ -162,11 +225,12 @@ All settings can be overridden at runtime via `docker run -e VAR=value`:
 | `apcu` | `5.1.27` | In-memory user cache |
 | `redis` | `6.2.0` | Redis client for caching/pub-sub |
 | `xdebug` | `3.4.5` | Step debugging with breakpoints |
+| `pcov` | `1.0.12` | Fast code coverage collection |
 
 ### Build Arguments
 
 All runtime defaults can also be set at build time via `--build-arg`:
-- **Versions:** `PHP_VERSION`, `ALPINE_VERSION`, `APCU_VERSION`, `REDIS_VERSION`, `XDEBUG_VERSION`, `AMQP_VERSION`, `RDKAFKA_VERSION`
+- **Versions:** `PHP_VERSION`, `ALPINE_VERSION`, `APCU_VERSION`, `REDIS_VERSION`, `XDEBUG_VERSION`, `PCOV_VERSION`, `AMQP_VERSION`, `RDKAFKA_VERSION`
 - **PHP Settings:** All runtime environment variables listed above
 
 > 💡 **Configuration Philosophy:** Build ARGs set defaults, ENV vars override at runtime. No Dockerfile edits needed for configuration changes.

@@ -4,6 +4,7 @@ ARG ALPINE_VERSION=3.22
 ARG APCU_VERSION=5.1.27
 ARG REDIS_VERSION=6.2.0
 ARG XDEBUG_VERSION=3.4.5
+ARG PCOV_VERSION=1.0.12
 ARG AMQP_VERSION=2.1.2
 ARG RDKAFKA_VERSION=6.0.5
 
@@ -32,6 +33,7 @@ LABEL maintainer="HeadgentOps <devops@headgent.dev>"
 ARG APCU_VERSION
 ARG REDIS_VERSION
 ARG XDEBUG_VERSION
+ARG PCOV_VERSION
 ARG AMQP_VERSION
 ARG RDKAFKA_VERSION
 
@@ -50,9 +52,10 @@ RUN apk add --no-cache \
       apcu-${APCU_VERSION} \
       redis-${REDIS_VERSION} \
       xdebug-${XDEBUG_VERSION} \
+      pcov-${PCOV_VERSION} \
       amqp-${AMQP_VERSION} \
       rdkafka-${RDKAFKA_VERSION} \
- && docker-php-ext-enable apcu redis xdebug amqp rdkafka \
+ && docker-php-ext-enable apcu redis xdebug pcov amqp rdkafka \
  && docker-php-ext-enable opcache
 
 # --------------------
@@ -92,7 +95,8 @@ ENV PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT} \
     XDEBUG_START_WITH_REQUEST=yes \
     XDEBUG_CLIENT_HOST=host.docker.internal \
     XDEBUG_CLIENT_PORT=9003 \
-    XDEBUG_LOG_LEVEL=0
+    XDEBUG_LOG_LEVEL=0 \
+    PCOV_ENABLED=0
 
 # Runtime-Libs (MySQL-Client optional) + Security Updates
 RUN set -eux; \

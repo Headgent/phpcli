@@ -9,6 +9,15 @@ set -e
 # Ensure the user config directory exists
 mkdir -p /home/appuser/php-config
 
+# =============================================================================
+# Automatic conflict resolution: PCOV and Xdebug are mutually exclusive
+# =============================================================================
+# If PCOV is enabled, automatically disable Xdebug
+if [ "${PCOV_ENABLED}" = "1" ]; then
+  XDEBUG_MODE=off
+  echo "ℹ️  PCOV enabled - automatically disabling Xdebug (XDEBUG_MODE=off)"
+fi
+
 # Generate dynamic PHP configuration based on environment variables
 cat > /home/appuser/php-config/99-runtime-config.ini << PHPINI
 ; =============================================================================
@@ -57,6 +66,12 @@ xdebug.start_with_request = ${XDEBUG_START_WITH_REQUEST}
 xdebug.client_host = ${XDEBUG_CLIENT_HOST}
 xdebug.client_port = ${XDEBUG_CLIENT_PORT}
 xdebug.log_level = ${XDEBUG_LOG_LEVEL}
+
+; PCOV configuration (runtime controllable)
+; IMPORTANT: pcov and xdebug are mutually exclusive for code coverage
+; Set PCOV_ENABLED=1 to enable pcov (faster coverage than xdebug)
+; When enabled, xdebug should be set to XDEBUG_MODE=off
+pcov.enabled = ${PCOV_ENABLED}
 
 ; Security settings
 expose_php = Off
