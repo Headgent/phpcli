@@ -1,0 +1,49 @@
+services:
+  phpcli:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        # Build-time only (changes the image)
+        ALPINE_VERSION: ${ALPINE_VERSION:-3.23}
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+        INSTALL_DB_CLIENTS: ${INSTALL_DB_CLIENTS:-}
+        # Composer Version
+        COMPOSER_VERSION: ${COMPOSER_VERSION:-2.9.3}
+        # PECL Extension Versions
+        APCU_VERSION: ${APCU_VERSION:-5.1.27}
+        REDIS_VERSION: ${REDIS_VERSION:-6.2.0}
+        XDEBUG_VERSION: ${XDEBUG_VERSION:-3.4.5}
+        PCOV_VERSION: ${PCOV_VERSION:-1.0.12}
+        AMQP_VERSION: ${AMQP_VERSION:-2.1.2}
+        RDKAFKA_VERSION: ${RDKAFKA_VERSION:-6.0.5}
+    image: ${DOCKER_HUB}/${PHP_IMAGE_NAME}:${PHP_VERSION:-8.3}
+    container_name: ${PHP_IMAGE_NAME}
+    environment:
+      # PHP Configuration (runtime overrides)
+      - PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-512M}
+      - PHP_MAX_EXECUTION_TIME=${PHP_MAX_EXECUTION_TIME:-0}
+      - PHP_TIMEZONE=${PHP_TIMEZONE:-UTC}
+      - APCU_SHM_SIZE=${APCU_SHM_SIZE:-64M}
+      - OPCACHE_MEMORY_CONSUMPTION=${OPCACHE_MEMORY_CONSUMPTION:-128}
+      - OPCACHE_MAX_ACCELERATED_FILES=${OPCACHE_MAX_ACCELERATED_FILES:-4000}
+      - OPCACHE_REVALIDATE_FREQ=${OPCACHE_REVALIDATE_FREQ:-2}
+      - OPCACHE_JIT=${OPCACHE_JIT:-1254}
+      - OPCACHE_JIT_BUFFER_SIZE=${OPCACHE_JIT_BUFFER_SIZE:-128M}
+      - PHP_ERROR_REPORTING=${PHP_ERROR_REPORTING:-"E_ALL & ~E_DEPRECATED & ~E_STRICT"}
+      - PHP_DISPLAY_ERRORS=${PHP_DISPLAY_ERRORS:-Off}
+      - PHP_LOG_ERRORS=${PHP_LOG_ERRORS:-On}
+      # Xdebug Configuration
+      - XDEBUG_MODE=${XDEBUG_MODE:-debug}
+      - XDEBUG_START_WITH_REQUEST=${XDEBUG_START_WITH_REQUEST:-yes}
+      - XDEBUG_CLIENT_HOST=${XDEBUG_CLIENT_HOST:-host.docker.internal}
+      - XDEBUG_CLIENT_PORT=${XDEBUG_CLIENT_PORT:-9003}
+      - XDEBUG_LOG_LEVEL=${XDEBUG_LOG_LEVEL:-0}
+      # PCOV Configuration
+      - PCOV_ENABLED=${PCOV_ENABLED:-0}
+    volumes:
+      - '${PROJECT_ROOT}:${APP_ROOT}'
+    ports:
+      - "${XDEBUG_CLIENT_PORT:-9003}:9003"
